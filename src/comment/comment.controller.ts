@@ -16,7 +16,7 @@ export class CommentController {
     // 게시물 내 모든 댓글 조회
     @Get(':id')
     findByPostId(@Param('id') id: number) {
-        return this.commentService.findByPostId(id);
+        return this.commentService.findCommentsByPostId(id);
     }
 
     // 댓글 수정

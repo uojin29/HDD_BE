@@ -18,7 +18,6 @@ export class CommentService {
 
         @InjectRepository(User)
         private userRepository: Repository<User>,
-
     ) {}
 
     async create(createCommentDto: CreateCommentDto) {
@@ -42,13 +41,12 @@ export class CommentService {
     }
 
     // 게시물 내 모든 댓글 조회
-    async findByPostId(postId: number) {
-        const post = await this.postRepository.findOne({
-            where: { id: postId },
-        });
+    async findCommentsByPostId(postId: number) {
+        const post = await this.findPost(postId);
         if (!post) {
             throw new NotFoundException('존재하지 않는 게시물입니다.');
         }
+
         const comments = await this.commentRepository.find({
             where: {
                 post: {
@@ -121,5 +119,18 @@ export class CommentService {
         }
 
         return user;
+    }
+
+    async findOne(id: number) {
+        const comment = await this.commentRepository.findOne({
+            where: { id },
+            relations: ['user'],
+        });
+
+        if (!comment) {
+            throw new NotFoundException('존재하지 않는 댓글입니다.');
+        }
+
+        return comment;
     }
 }

@@ -14,6 +14,7 @@ export class UserService {
 
     async create(createUserDto: CreateUserDto) {
         const user = this.userRepository.create(createUserDto);
+
         return await this.userRepository.save(user);
     }
 
@@ -25,13 +26,17 @@ export class UserService {
     }
 
     async update(id: number, updateUserDto: UpdateUserDto) {
-        return await this.userRepository.update(id, updateUserDto);
+        await this.userRepository.update(id, updateUserDto);
+
+        return await this.findOne(id);
     }
 
     async softDelete(id: number) {
-        return await this.userRepository.update(id, {
+        await this.userRepository.update(id, {
             deletedAt: new Date(),
         });
+
+        return await this.findOne(id);
     }
 
     async findOne(id: number) {
@@ -45,5 +50,4 @@ export class UserService {
 
         return user;
     }
-
 }

@@ -21,8 +21,8 @@ export class PostController {
 
     // 게시물 조회
     @Get(':id')
-    findOne(@Param('id') id: number) {
-        return this.postService.findOne(id);
+    increaseViewCount(@Param('id') id: number) {
+        return this.postService.increaseViewCount(id);
     }
 
     // 게시물 수정
