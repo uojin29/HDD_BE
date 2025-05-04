@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import {PostModule} from "./post/post.module";
+import {LikeModule} from "./like/like.module";
 import {CommentModule} from "./comment/comment.module";
 
 @Module({
@@ -26,7 +27,7 @@ import {CommentModule} from "./comment/comment.module";
         timezone: 'Asia/Seoul',
       }),
     }),
-    UserModule, PostModule, CommentModule
+    UserModule, PostModule, CommentModule, LikeModule
   ],
   controllers: [],
   providers: [],
