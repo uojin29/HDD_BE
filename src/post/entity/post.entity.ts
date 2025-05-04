@@ -1,6 +1,7 @@
-import {Entity, Column, PrimaryGeneratedColumn, ManyToOne} from 'typeorm';
+import {Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany} from 'typeorm';
 import { BaseEntity } from '../../common/base.entity';
 import {User} from "../../user/entity/user.entity";
+import {Comment} from "../../comment/entity/comment.entity";
 
 @Entity()
 export class Post extends BaseEntity {
@@ -9,6 +10,9 @@ export class Post extends BaseEntity {
 
     @ManyToOne(() => User, (user) => user.id)
     user: User
+
+    @OneToMany(() => Comment, (comment) => comment.post)
+    comments: Comment[];
 
     @Column()
     title: string;
