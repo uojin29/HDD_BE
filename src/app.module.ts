@@ -24,6 +24,7 @@ import {CommentModule} from "./comment/comment.module";
         database: configService.get<string>('DB_DATABASE'),
         entities: [__dirname + '/**/*.entity.{ts,js}'],
         synchronize: true,
+        dropSchema: false,
         timezone: 'Asia/Seoul',
       }),
     }),

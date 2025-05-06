@@ -23,9 +23,17 @@ export class UserService {
     ) {}
 
     async create(createUserDto: CreateUserDto) {
-        const user = this.userRepository.create(createUserDto);
+        const existingUser = await this.userRepository.findOne({
+            where: { email: createUserDto.email },
+        });
 
-        return await this.userRepository.save(user);
+        if (!existingUser || existingUser.deletedAt != null) {
+            // 새로운 유저거나 탈퇴한 유저인 경우
+            const user = this.userRepository.create(createUserDto);
+            return await this.userRepository.save(user);
+        }
+        else
+            throw new NotFoundException('이미 존재하는 유저입니다.');
     }
 
     // 모든 유저 조회(삭제된 유저 포함)
