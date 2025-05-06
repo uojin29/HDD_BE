@@ -5,12 +5,21 @@ import { User } from './entity/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ProfileUserDto } from './dto/profile-user.dto';
+import { Post } from 'src/post/entity/post.entity';
+import { Comment } from 'src/comment/entity/comment.entity';
+
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
+
+        @InjectRepository(Post)
+        private postRepository: Repository<Post>,
+
+        @InjectRepository(Comment)
+        private commentRepository: Repository<Comment>,
     ) {}
 
     async create(createUserDto: CreateUserDto) {
@@ -60,5 +69,29 @@ export class UserService {
         userProfile.nickname = user.nickname;
 
         return userProfile;
+    }
+
+    async postList(id: number){
+        const postList = await this.postRepository.find({
+            where: { user: { id } },
+            relations: ['user'],
+        });
+        if (postList.length == 0) {
+            throw new NotFoundException('작성한 글이 없습니다.');
+        }
+
+        return postList;
+    }
+
+    async commentList(id: number){
+        const commentList = await this.commentRepository.find({
+            where: { user: { id } },
+            relations: ['user'],
+        });
+        if (commentList.length == 0) {
+            throw new NotFoundException('작성한 댓글이 없습니다.');
+        }
+
+        return commentList;
     }
 }

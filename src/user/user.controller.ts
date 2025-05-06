@@ -43,4 +43,19 @@ export class UserController {
     profile(@Param('id') id: number){
         return this.userService.profile(id);
     }
+
+    // 자신이 작성한 글 목록 조회
+    // postList를 반환할 때 user의 정보를 함께 반환할 것인지? postListDto를 만들어야 할지 고민해보기
+    @Get(':id/postList')
+    postList(@Param('id') id: number){
+        return this.userService.postList(id);
+    }
+
+    // 자신이 작성한 댓글 목록 조회
+    // commentList를 반환할 때 user의 정보를 함께 반환할 것인지? commentListDto를 만들어야 할지 고민해보기
+    // 어떤 게시물에 대한 댓글인지도 함께 보여줄 것인가?
+    @Get(':id/commentList')
+    commentList(@Param('id') id: number){
+        return this.userService.commentList(id);
+    }
 }
