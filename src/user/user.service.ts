@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from './entity/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ProfileUserDto } from './dto/profile-user.dto';
 
 @Injectable()
 export class UserService {
@@ -49,5 +50,15 @@ export class UserService {
         }
 
         return user;
+    }
+
+    async profile(id: number){
+        const user = await this.findOne(id);
+        const userProfile = new ProfileUserDto();
+
+        userProfile.name = user.name;
+        userProfile.nickname = user.nickname;
+
+        return userProfile;
     }
 }

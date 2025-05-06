@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ProfileUserDto } from './dto/profile-user.dto';
 
 @Controller('users')
 export class UserController {
@@ -35,5 +36,11 @@ export class UserController {
     @Patch(':id/delete')
     softDelete(@Param('id') id: number) {
         return this.userService.softDelete(id);
+    }
+
+    // 다른 유저의 프로필 조회 (Response로 profileUserDto 반환)
+    @Get(':id/profile')
+    profile(@Param('id') id: number){
+        return this.userService.profile(id);
     }
 }
