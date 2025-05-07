@@ -20,13 +20,14 @@ export class LikeService {
         private userRepository: Repository<User>,
     ) {}
 
-    async create(createLikeDto: CreateLikeDto) {
+    async create(userId: number, createLikeDto: CreateLikeDto) {
         const user = await this.userRepository.findOne({
-            where: { id: createLikeDto.userId },
+            where: { id: userId },
         });
         if (!user) {
             throw new NotFoundException('존재하지 않는 유저입니다.');
         }
+
         const post = await this.postRepository.findOne({
             where: { id: createLikeDto.postId },
         });
@@ -56,14 +57,22 @@ export class LikeService {
         return await this.likeRepository.save(like);
     }
 
-    async softDelete(id: number, deleteLikeDto: DeleteLikeDto) {
+    async softDelete(userId: number, id: number, deleteLikeDto: DeleteLikeDto) {
         const post = await this.findPostByPostId(deleteLikeDto.postId);
         if (!post) {
             throw new NotFoundException('존재하지 않는 게시물입니다.');
         }
 
-        const user = await this.findUserByUserId(deleteLikeDto.userId);
-        if (user.id != user.id) {
+        const like = await this.likeRepository.findOne({
+            where: { id },
+            relations: ['user', 'post'],
+        });
+        if (!like) {
+            throw new NotFoundException('존재하지 않는 좋아요입니다.');
+        }
+
+        const user = await this.findUserByUserId(userId);
+        if (like.user.id != user.id) {
             throw new NotFoundException('작성자만 취소 가능합니다.');
         }
 
@@ -71,7 +80,7 @@ export class LikeService {
             deletedAt: new Date(),
         });
 
-        return await this.findOne(id);
+        return ('좋아요가 취소되었습니다.');
     }
 
     async findOne(id: number) {
@@ -116,7 +125,7 @@ export class LikeService {
 
         return await this.likeRepository.count({
             where: {
-                post: {id: post.id},
+                post: { id: post.id },
                 deletedAt: IsNull(),
             } as FindOptionsWhere<Like>,
         });

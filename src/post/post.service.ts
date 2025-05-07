@@ -16,13 +16,14 @@ export class PostService {
         private userRepository: Repository<User>,
     ) {}
 
-    async create(createPostDto: CreatePostDto) {
+    async create(createPostDto: CreatePostDto, userId: number) {
         const user = await this.userRepository.findOne({
-            where: { id: createPostDto.userId },
+            where: { id: userId },
         });
         if (!user) {
             throw new NotFoundException('존재하지 않는 유저입니다.');
         }
+
         const post = this.postRepository.create(createPostDto);
         post.user = user;
         post.likeCount = 0;
@@ -39,23 +40,26 @@ export class PostService {
         });
     }
 
-    async update(id: number, updatePostDto: UpdatePostDto) {
-        const user = await this.findUserByUserId(updatePostDto.userId);
-        const post = await this.findOne(id);
+    async update(userId: number, id: number, updatePostDto: UpdatePostDto) {
+        const user = await this.findUserByUserId(userId);
+        if (!user) {
+            throw new NotFoundException('존재하지 않는 유저입니다.');
+        }
 
+        const post = await this.findOne(id);
         if (!post) {
             throw new NotFoundException('존재하지 않는 게시물입니다.');
         }
         if (post.user.id != user.id) {
             throw new NotFoundException('작성자만 수정 가능합니다.');
         }
-        const { userId, ...updateData } = updatePostDto;
+        const { ...updateData } = updatePostDto;
         await this.postRepository.update(id, updateData);
 
         return await this.findOne(id);
     }
 
-    async softDelete(id: number, userId: number) {
+    async softDelete(userId: number, id: number) {
         const user = await this.findUserByUserId(userId);
         const post = await this.findOne(id);
 
@@ -69,7 +73,7 @@ export class PostService {
             deletedAt: new Date(),
         });
 
-        return await this.findOne(id);
+        return ('게시물이 삭제되었습니다.');
     }
 
     async findOne(id: number) {

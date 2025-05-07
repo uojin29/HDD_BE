@@ -20,9 +20,9 @@ export class CommentService {
         private userRepository: Repository<User>,
     ) {}
 
-    async create(createCommentDto: CreateCommentDto) {
+    async create(userId: number, createCommentDto: CreateCommentDto) {
         const user = await this.userRepository.findOne({
-            where: { id: createCommentDto.userId },
+            where: { id: userId },
         });
         if (!user) {
             throw new NotFoundException('존재하지 않는 유저입니다.');
@@ -48,22 +48,18 @@ export class CommentService {
         }
 
         const comments = await this.commentRepository.find({
-            where: {
-                post: {
-                    id: postId,
-                },
-            } as any,
+            where: { post: { id: postId } } ,
             relations: ['post'],
         });
 
-        if(!comments) {
+        if(comments.length == 0) {
             throw new NotFoundException('댓글이 존재하지 않습니다');
         }
         return comments;
     }
 
-    async update(id: number, updateCommentDto: UpdateCommentDto) {
-        const user = await this.findUserByUserId(updateCommentDto.userId);
+    async update(userId: number, id: number, updateCommentDto: UpdateCommentDto) {
+        const user = await this.findUserByUserId(userId);
         const post = await this.findPost(updateCommentDto.postId);
 
         if (!post) {
@@ -72,27 +68,30 @@ export class CommentService {
         if (post.user.id != user.id) {
             throw new NotFoundException('작성자만 수정 가능합니다.');
         }
-        const { userId,postId,...updateData } = updateCommentDto;
+        const { postId,...updateData } = updateCommentDto;
         await this.commentRepository.update(id, updateData);
 
         return await this.commentRepository.findOne({ where: { id } });
     }
 
-    async softDelete(id: number, userId: number) {
+    async softDelete(userId: number, id: number) {
         const user = await this.findUserByUserId(userId);
-        const post = await this.findPost(id);
+        const comment = await this.commentRepository.findOne({
+            where: { id },
+            relations: ['user', 'post'],
+        });
 
-        if (!post) {
-            throw new NotFoundException('존재하지 않는 게시물입니다.');
+        if (!comment) {
+            throw new NotFoundException('존재하지 않는 댓글입니다.');
         }
-        if (post.user.id != user.id) {
+        if (comment.user.id != user.id) {
             throw new NotFoundException('작성자만 삭제 가능합니다.');
         }
         await this.commentRepository.update(id, {
             deletedAt: new Date(),
         });
 
-        return await this.commentRepository.findOne({ where: { id } });
+        return ('댓글이 삭제되었습니다.');
     }
 
     async findPost(id: number) {

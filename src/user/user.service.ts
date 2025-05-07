@@ -29,6 +29,16 @@ export class UserService {
 
         if (!existingUser || existingUser.deletedAt != null) {
             // 새로운 유저거나 탈퇴한 유저인 경우
+
+            // password 암호화
+            const bcrypt = require('bcrypt');
+            const saltRounds = 10;
+
+            const salt = await bcrypt.genSalt(saltRounds);
+            const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+
+            createUserDto.password = hashedPassword;
+
             const user = this.userRepository.create(createUserDto);
             return await this.userRepository.save(user);
         }
@@ -43,18 +53,23 @@ export class UserService {
         });
     }
 
-    async update(id: number, updateUserDto: UpdateUserDto) {
-        await this.userRepository.update(id, updateUserDto);
+    async update(userId: number, updateUserDto: UpdateUserDto) {
+        await this.userRepository.update(userId, updateUserDto);
 
-        return await this.findOne(id);
+        return await this.findOne(userId);
     }
 
-    async softDelete(id: number) {
-        await this.userRepository.update(id, {
+    async softDelete(userId: number) {
+        if (!userId) {
+            throw new NotFoundException('존재하지 않는 유저입니다.');
+        }
+
+        await this.userRepository.update(userId, {
             deletedAt: new Date(),
         });
 
-        return await this.findOne(id);
+
+        return ('탈퇴 완료되었습니다.');
     }
 
     async findOne(id: number) {
@@ -79,9 +94,9 @@ export class UserService {
         return userProfile;
     }
 
-    async postList(id: number){
+    async postList(userId: number){
         const postList = await this.postRepository.find({
-            where: { user: { id } },
+            where: { user: { id:userId } },
             relations: ['user'],
         });
         if (postList.length == 0) {
@@ -91,11 +106,12 @@ export class UserService {
         return postList;
     }
 
-    async commentList(id: number){
+    async commentList(userId: number){
         const commentList = await this.commentRepository.find({
-            where: { user: { id } },
+            where: { user: { id: userId } },
             relations: ['user'],
         });
+
         if (commentList.length == 0) {
             throw new NotFoundException('작성한 댓글이 없습니다.');
         }

@@ -1,16 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req } from '@nestjs/common';
 import {CreateLikeDto} from "./dto/create-like.dto";
 import {LikeService} from "./like.service";
 import {DeleteLikeDto} from "./dto/delete-like.dto";
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('likes')
 export class LikeController {
     constructor(private readonly likeService: LikeService) {}
 
-    // 게시물 추가
+    // 좋아요 추가
     @Post()
-    create(@Body() createLikeDto: CreateLikeDto) {
-        return this.likeService.create(createLikeDto);
+    @UseGuards(AuthGuard('jwt'))
+    create(@Req() req: any, @Body() createLikeDto: CreateLikeDto) {
+        const userId = req.user.userId;
+        return this.likeService.create(userId, createLikeDto);
     }
 
     // 게시물 내 좋아요 수
@@ -19,9 +22,12 @@ export class LikeController {
         return this.likeService.countLikesByPostId(id);
     }
 
-    // 게시물 삭제 (실제로 삭제가 아니라, delete_at을 현재 시간으로 업데이트)
+    // 좋아요 삭제 (실제로 삭제가 아니라, delete_at을 현재 시간으로 업데이트)
+    // 로직 수정 필요할 듯 (좋아요 id가 아니라 userId와 postId, delete_at으로 찾아서 삭제)
     @Patch(':id/delete')
-    softDelete(@Param('id') id: number, @Body() deleteLikeDto: DeleteLikeDto) {
-        return this.likeService.softDelete(id, deleteLikeDto);
+    @UseGuards(AuthGuard('jwt'))
+    softDelete(@Req() req: any, @Param('id') id: number, @Body() deleteLikeDto: DeleteLikeDto) {
+        const userId = req.user.userId;
+        return this.likeService.softDelete(userId, id, deleteLikeDto);
     }
 }

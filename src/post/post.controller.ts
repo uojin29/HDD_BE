@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('posts')
 export class PostController {
@@ -9,13 +10,15 @@ export class PostController {
 
     // 게시물 추가
     @Post()
-    create(@Body() createPostDto: CreatePostDto) {
-        return this.postService.create(createPostDto);
+    @UseGuards(AuthGuard('jwt'))
+    create(@Body() createPostDto: CreatePostDto, @Req() req: any) {
+        const userId = req.user.userId;
+        return this.postService.create(createPostDto, userId);
     }
 
     // 모든 게시물 조회
     @Get()
-    findAll() {
+    findAll(@Req() req: any) {
         return this.postService.findAll();
     }
 
@@ -27,13 +30,17 @@ export class PostController {
 
     // 게시물 수정
     @Patch(':id')
-    update(@Param('id') id: number, @Body() updatePostDto: UpdatePostDto) {
-        return this.postService.update(id, updatePostDto);
+    @UseGuards(AuthGuard('jwt'))
+    update(@Req() req: any, @Param('id') id: number, @Body() updatePostDto: UpdatePostDto) {
+        const userId = req.user.userId;
+        return this.postService.update(userId, id, updatePostDto);
     }
 
     // 게시물 삭제 (실제로 삭제가 아니라, delete_at을 현재 시간으로 업데이트)
     @Patch(':id/delete')
-    softDelete(@Param('id') id: number, @Body('userId') userId: number) {
+    @UseGuards(AuthGuard('jwt'))
+    softDelete(@Req() req: any, @Param('id') id: number) {
+        const userId = req.user.userId;
         return this.postService.softDelete(id, userId);
     }
 }
