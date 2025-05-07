@@ -1,5 +1,4 @@
 export class UpdatePostDto {
-    userId: number;
     title: string;
     content: string;
     likeCount: 0;

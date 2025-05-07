@@ -5,6 +5,7 @@ import { UserModule } from './user/user.module';
 import {PostModule} from "./post/post.module";
 import {LikeModule} from "./like/like.module";
 import {CommentModule} from "./comment/comment.module";
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import {CommentModule} from "./comment/comment.module";
         timezone: 'Asia/Seoul',
       }),
     }),
-    UserModule, PostModule, CommentModule, LikeModule
+    UserModule, PostModule, CommentModule, LikeModule, AuthModule
   ],
   controllers: [],
   providers: [],
