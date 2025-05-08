@@ -115,6 +115,52 @@ export class PostService {
 
     // 게시물 목록 조회
     async findPostList(postListDto: PostListDto) {
+        const where = {
+            deletedAt: IsNull(),
+        };
+
+        return this.paginate(postListDto, where);
+    }
+
+    async searchByTitle(titleSearchDto: TitleSearchDto) {
+        const where = {
+            title: titleSearchDto.title,
+            deletedAt: IsNull(),
+        };
+
+        return this.paginate(titleSearchDto, where);
+    }
+
+    async searchByContent(contentSearchDto: ContentSearchDto) {
+        const where = {
+            content: contentSearchDto.content,
+            deletedAt: IsNull(),
+        };
+
+        return this.paginate(contentSearchDto, where);
+    }
+
+    async searchByNickname(nicknameSearchDto: NicknameSearchDto) {
+        const where = {
+            user: { nickname: nicknameSearchDto.nickname },
+            deletedAt: IsNull(),
+        };
+
+        return this.paginate(nicknameSearchDto, where);
+    }
+
+    async searchAll(postSearchDto: PostSearchDto) {
+        const where = {
+            deletedAt: IsNull(),
+            title: postSearchDto.title,
+            content: postSearchDto.content,
+            user: { nickname: postSearchDto.nickname },
+        };
+
+        return this.paginate(postSearchDto, where);
+    }
+
+    async paginate(postListDto: PostListDto, where: any) {
         const {
             page = 1,
             limit = 10,
@@ -123,16 +169,18 @@ export class PostService {
         } = postListDto;
 
         const [data, total] = await this.postRepository.findAndCount({
+            where,
             relations: ['user'],
-            where: {
-                deletedAt: IsNull(),
-            },
             order: {
                 [orderBy]: order,
             },
             skip: (page - 1) * limit,
             take: limit,
         });
+
+        if(!data || data.length === 0) {
+            throw new NotFoundException('존재하지 않는 게시물입니다.');
+        }
 
         return {
             data,
@@ -141,70 +189,5 @@ export class PostService {
             limit,
             totalPage: Math.ceil(total / limit),
         };
-    }
-
-    async searchByTitle(titleSearchDto: TitleSearchDto) {
-        const posts = await this.postRepository.find({
-            where: {
-                title: titleSearchDto.title,
-                deletedAt: IsNull(),
-            },
-            relations: ['user'],
-        });
-
-        if (posts.length === 0) {
-            throw new NotFoundException('존재하지 않는 게시물입니다.');
-        }
-
-        return posts;
-    }
-
-    async searchByContent(contentSearchDto: ContentSearchDto) {
-        const posts = await this.postRepository.find({
-            where: {
-                content: contentSearchDto.content,
-                deletedAt: IsNull(),
-            },
-            relations: ['user'],
-        });
-
-        if (posts.length === 0) {
-            throw new NotFoundException('존재하지 않는 게시물입니다.');
-        }
-
-        return posts;
-    }
-
-    async searchByNickname(nicknameSearchDto: NicknameSearchDto) {
-        const posts = await this.postRepository.find({
-            where: {
-                user: { nickname: nicknameSearchDto.nickname },
-                deletedAt: IsNull(),
-            },
-            relations: ['user'],
-        });
-
-        if (posts.length === 0) {
-            throw new NotFoundException('존재하지 않는 게시물입니다.');
-        }
-
-        return posts;
-    }
-
-    async searchAll(postSearchDto: PostSearchDto) {
-        const posts = await this.postRepository.find({
-            where: [
-                { title: postSearchDto.title, deletedAt: IsNull() },
-                { content: postSearchDto.content, deletedAt: IsNull() },
-                { user: { nickname: postSearchDto.nickname }, deletedAt: IsNull() },
-            ],
-            relations: ['user'],
-        });
-
-        if (posts.length === 0) {
-            throw new NotFoundException('존재하지 않는 게시물입니다.');
-        }
-
-        return posts;
     }
 }

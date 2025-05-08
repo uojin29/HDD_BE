@@ -59,25 +59,25 @@ export class PostController {
 
     // 제목으로 게시물 검색
     @Get('/search/title')
-    searchByTitle(@Body() titleSearchDto: TitleSearchDto) {
+    searchByTitle(@Query() titleSearchDto: TitleSearchDto) {
         return this.postService.searchByTitle(titleSearchDto);
     }
 
     // 내용으로 게시물 검색
     @Get('/search/content')
-    searchByContent(@Body() contentSearchDto: ContentSearchDto) {
+    searchByContent(@Query() contentSearchDto: ContentSearchDto) {
         return this.postService.searchByContent(contentSearchDto);
     }
 
     // 작성자 닉네임으로 게시물 검색
     @Get('/search/nickname')
-    searchByNickname(@Body() nicknameSearchDto: NicknameSearchDto) {
+    searchByNickname(@Query() nicknameSearchDto: NicknameSearchDto) {
         return this.postService.searchByNickname(nicknameSearchDto);
     }
 
     // 제목/내용/닉네임으로 게시물 검색
     @Get('/search/all')
-    searchAll(@Body() postSearchDto: PostSearchDto) {
+    searchAll(@Query() postSearchDto: PostSearchDto) {
         return this.postService.searchAll(postSearchDto);
     }
 }
