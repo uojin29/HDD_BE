@@ -21,33 +21,25 @@ export class LikeService {
     ) {}
 
     async create(userId: number, createLikeDto: CreateLikeDto) {
-        const user = await this.userRepository.findOne({
-            where: { id: userId },
-        });
-        if (!user) {
-            throw new NotFoundException('존재하지 않는 유저입니다.');
-        }
-
-        const post = await this.postRepository.findOne({
-            where: { id: createLikeDto.postId },
-        });
-        if (!post) {
-            throw new NotFoundException('존재하지 않는 게시물입니다.');
-        }
+        const user = await this.findUserByUserId(userId);
+        const post = await this.findPostByPostId(createLikeDto.postId);
 
         // 데이터가 존재하고 deletedAt이 null인 경우
         const existingLike = await this.likeRepository.findOne({
             where: {
-                user: {id: user.id},
-                post: {id: post.id},
+                user: { id: user.id },
+                post: { id: post.id },
                 deletedAt: IsNull(),
-            } as FindOptionsWhere<Like>,
+            },
             relations: ['user', 'post'],
         });
 
         if (existingLike) {
             throw new NotFoundException('이미 좋아요를 눌렀습니다.');
         }
+
+        post.likeCount += 1;
+        await this.postRepository.save(post);
 
         const like = this.likeRepository.create({
             user,
@@ -57,38 +49,30 @@ export class LikeService {
         return await this.likeRepository.save(like);
     }
 
-    async softDelete(userId: number, id: number, deleteLikeDto: DeleteLikeDto) {
-        const post = await this.findPostByPostId(deleteLikeDto.postId);
-        if (!post) {
-            throw new NotFoundException('존재하지 않는 게시물입니다.');
-        }
-
-        const like = await this.likeRepository.findOne({
-            where: { id },
-            relations: ['user', 'post'],
-        });
-        if (!like) {
-            throw new NotFoundException('존재하지 않는 좋아요입니다.');
-        }
-
+    async softDelete(userId: number, deleteLikeDto: DeleteLikeDto) {
         const user = await this.findUserByUserId(userId);
-        if (like.user.id != user.id) {
-            throw new NotFoundException('작성자만 취소 가능합니다.');
-        }
+        const post = await this.findPostByPostId(deleteLikeDto.postId);
+        const like = await this.findOne(user, post);
 
-        await this.likeRepository.update(id, {
+        await this.likeRepository.update( like.id, {
             deletedAt: new Date(),
         });
+
+        post.likeCount -= 1;
+        await this.postRepository.save(post);
 
         return ('좋아요가 취소되었습니다.');
     }
 
-    async findOne(id: number) {
+    async findOne(user: User, post: Post) {
         const like = await this.likeRepository.findOne({
-            where: { id },
+            where: {
+                user: { id: user.id },
+                post: { id: post.id },
+                deletedAt: IsNull()
+            },
             relations: ['user', 'post'],
         });
-
         if (!like) {
             throw new NotFoundException('존재하지 않는 좋아요입니다.');
         }
@@ -98,9 +82,11 @@ export class LikeService {
 
     async findUserByUserId(userId: number) {
         const user = await this.userRepository.findOne({
-            where: { id: userId },
+            where: {
+                id: userId,
+                deletedAt: IsNull()
+            },
         });
-
         if (!user) {
             throw new NotFoundException('존재하지 않는 유저입니다.');
         }
@@ -110,9 +96,11 @@ export class LikeService {
 
     async findPostByPostId(postId: number) {
         const post = await this.postRepository.findOne({
-            where: { id: postId },
+            where: {
+                id: postId,
+                deletedAt: IsNull()
+            },
         });
-
         if (!post) {
             throw new NotFoundException('존재하지 않는 게시물입니다.');
         }
@@ -123,11 +111,6 @@ export class LikeService {
     async countLikesByPostId(postId: number) {
         const post = await this.findPostByPostId(postId);
 
-        return await this.likeRepository.count({
-            where: {
-                post: { id: post.id },
-                deletedAt: IsNull(),
-            } as FindOptionsWhere<Like>,
-        });
+        return post.likeCount;
     }
 }

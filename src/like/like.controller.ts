@@ -18,16 +18,15 @@ export class LikeController {
 
     // 게시물 내 좋아요 수
     @Get(':id')
-    increaseViewCount(@Param('id') id: number) {
-        return this.likeService.countLikesByPostId(id);
+    increaseViewCount(@Param('id') postId: number) {
+        return this.likeService.countLikesByPostId(postId);
     }
 
     // 좋아요 삭제 (실제로 삭제가 아니라, delete_at을 현재 시간으로 업데이트)
-    // 로직 수정 필요할 듯 (좋아요 id가 아니라 userId와 postId, delete_at으로 찾아서 삭제)
-    @Patch(':id/delete')
+    @Patch('/delete')
     @UseGuards(AuthGuard('jwt'))
-    softDelete(@Req() req: any, @Param('id') id: number, @Body() deleteLikeDto: DeleteLikeDto) {
+    softDelete(@Req() req: any, @Body() deleteLikeDto: DeleteLikeDto) {
         const userId = req.user.userId;
-        return this.likeService.softDelete(userId, id, deleteLikeDto);
+        return this.likeService.softDelete(userId, deleteLikeDto);
     }
 }
