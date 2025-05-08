@@ -2,6 +2,7 @@ import {Entity, Column, PrimaryGeneratedColumn, OneToMany} from 'typeorm';
 import { BaseEntity } from '../../common/base.entity';
 import {Post} from "../../post/entity/post.entity";
 import {Comment} from "../../comment/entity/comment.entity";
+import {Notification} from "../../notification/entity/notification.entity";
 import { Auth } from 'src/auth/entity/auth.entity';
 
 
@@ -18,6 +19,9 @@ export class User extends BaseEntity {
 
     @OneToMany(() => Auth, (auth) => auth.user)
     auths: Auth[];
+
+    @OneToMany(() => Notification, (notification) => notification.user)
+    notifications: Notification[];
 
     @Column()
     email: string;

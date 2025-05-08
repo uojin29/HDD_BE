@@ -1,11 +1,13 @@
 import {Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import {FindOptionsWhere, IsNull, Repository} from 'typeorm';
+import {IsNull, Repository} from 'typeorm';
 import {Like} from './entity/like.entity';
 import {Post} from "../post/entity/post.entity";
 import {User} from "../user/entity/user.entity";
 import {CreateLikeDto} from "./dto/create-like.dto";
 import {DeleteLikeDto} from "./dto/delete-like.dto";
+import {Notification} from "../notification/entity/notification.entity";
+import {NotificationType} from "../notification/enum/notification-type.enum";
 
 @Injectable()
 export class LikeService {
@@ -18,6 +20,9 @@ export class LikeService {
 
         @InjectRepository(User)
         private userRepository: Repository<User>,
+
+        @InjectRepository(Notification)
+        private notificationRepository: Repository<Notification>,
     ) {}
 
     async create(userId: number, createLikeDto: CreateLikeDto) {
@@ -45,6 +50,13 @@ export class LikeService {
             user,
             post,
         });
+
+        const notification = this.notificationRepository.create({
+            user: post.user,
+            isRead: false,
+            type: NotificationType.LIKE,
+        });
+        await this.notificationRepository.save(notification);
 
         return await this.likeRepository.save(like);
     }
@@ -100,6 +112,7 @@ export class LikeService {
                 id: postId,
                 deletedAt: IsNull()
             },
+            relations: ['user'],
         });
         if (!post) {
             throw new NotFoundException('존재하지 않는 게시물입니다.');
