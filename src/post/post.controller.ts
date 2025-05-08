@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { PostListDto } from './dto/post-list';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('posts')
 export class PostController {
@@ -12,9 +13,10 @@ export class PostController {
     // 게시물 추가
     @Post()
     @UseGuards(AuthGuard('jwt'))
-    create(@Body() createPostDto: CreatePostDto, @Req() req: any) {
+    @UseInterceptors(FileInterceptor('file'))
+    create(@Req() req: any, @Body() createPostDto: CreatePostDto, @UploadedFile() file: Express.Multer.File) {
         const userId = req.user.userId;
-        return this.postService.create(createPostDto, userId);
+        return this.postService.create(userId, createPostDto, file);
     }
 
     // 게시물 목록 조회

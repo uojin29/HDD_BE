@@ -17,7 +17,7 @@ export class PostService {
         private userRepository: Repository<User>,
     ) {}
 
-    async create(createPostDto: CreatePostDto, userId: number) {
+    async create(userId: number, createPostDto: CreatePostDto, file: Express.Multer.File) {
         const user = await this.userRepository.findOne({
             where: { id: userId },
         });
@@ -25,11 +25,17 @@ export class PostService {
             throw new NotFoundException('존재하지 않는 유저입니다.');
         }
 
+        // 파일이 존재하는 경우
+        if (file) {
+            createPostDto.filePath = file.path;
+        }
+
         const post = this.postRepository.create(createPostDto);
         post.user = user;
         post.likeCount = 0;
         post.commentCount = 0;
         post.viewCount = 0;
+        post.filePath = file ? file.path : '';
 
         return await this.postRepository.save(post);
     }
@@ -43,14 +49,8 @@ export class PostService {
 
     async update(userId: number, id: number, updatePostDto: UpdatePostDto) {
         const user = await this.findUserByUserId(userId);
-        if (!user) {
-            throw new NotFoundException('존재하지 않는 유저입니다.');
-        }
-
         const post = await this.findOne(id);
-        if (!post) {
-            throw new NotFoundException('존재하지 않는 게시물입니다.');
-        }
+
         if (post.user.id != user.id) {
             throw new NotFoundException('작성자만 수정 가능합니다.');
         }
@@ -64,9 +64,6 @@ export class PostService {
         const user = await this.findUserByUserId(userId);
         const post = await this.findOne(id);
 
-        if (!post) {
-            throw new NotFoundException('존재하지 않는 게시물입니다.');
-        }
         if (post.user.id != user.id) {
             throw new NotFoundException('작성자만 삭제 가능합니다.');
         }

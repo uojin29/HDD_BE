@@ -6,6 +6,7 @@ import {PostModule} from "./post/post.module";
 import {LikeModule} from "./like/like.module";
 import {CommentModule} from "./comment/comment.module";
 import { AuthModule } from './auth/auth.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -29,7 +30,10 @@ import { AuthModule } from './auth/auth.module';
         timezone: 'Asia/Seoul',
       }),
     }),
-    UserModule, PostModule, CommentModule, LikeModule, AuthModule
+    UserModule, PostModule, CommentModule, LikeModule, AuthModule,
+    MulterModule.register({
+      dest: './uploads',
+    }),
   ],
   controllers: [],
   providers: [],
