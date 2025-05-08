@@ -6,6 +6,8 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 import {User} from "../user/entity/user.entity";
 import {Post} from "../post/entity/post.entity";
 import {Comment} from "./entity/comment.entity";
+import {Notification} from "../notification/entity/notification.entity";
+import {NotificationType} from "../notification/enum/notification-type.enum";
 
 @Injectable()
 export class CommentService {
@@ -18,6 +20,9 @@ export class CommentService {
 
         @InjectRepository(User)
         private userRepository: Repository<User>,
+
+        @InjectRepository(Notification)
+        private notificationRepository: Repository<Notification>,
     ) {}
 
     async create(userId: number, createCommentDto: CreateCommentDto) {
@@ -28,7 +33,11 @@ export class CommentService {
             throw new NotFoundException('존재하지 않는 유저입니다.');
         }
         const post = await this.postRepository.findOne({
-            where: { id: createCommentDto.postId },
+            where: {
+                id: createCommentDto.postId,
+                deletedAt: IsNull()
+            },
+            relations: ['user'],
         });
         if (!post) {
             throw new NotFoundException('존재하지 않는 게시물입니다.');
@@ -39,6 +48,16 @@ export class CommentService {
 
         post.commentCount += 1;
         await this.postRepository.save(post);
+
+        // 댓글 작성자와 게시물 작성자가 다를 경우 알림 생성
+        if (user.id != post.user.id) {
+            const notification = this.notificationRepository.create({
+                user: post.user,
+                isRead: false,
+                type: NotificationType.COMMENT,
+            });
+            await this.notificationRepository.save(notification);
+        }
 
         return await this.commentRepository.save(comment);
     }

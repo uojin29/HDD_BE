@@ -7,6 +7,7 @@ import {LikeModule} from "./like/like.module";
 import {CommentModule} from "./comment/comment.module";
 import { AuthModule } from './auth/auth.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { MulterModule } from '@nestjs/platform-express';
         timezone: 'Asia/Seoul',
       }),
     }),
-    UserModule, PostModule, CommentModule, LikeModule, AuthModule,
+    UserModule, PostModule, CommentModule, LikeModule, AuthModule, NotificationModule,
     MulterModule.register({
       dest: './uploads',
     }),
