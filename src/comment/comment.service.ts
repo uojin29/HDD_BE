@@ -1,6 +1,6 @@
 import {Injectable, NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import {User} from "../user/entity/user.entity";
@@ -36,6 +36,9 @@ export class CommentService {
         const comment = this.commentRepository.create(createCommentDto);
         comment.user = user;
         comment.post = post;
+
+        post.commentCount += 1;
+        await this.postRepository.save(post);
 
         return await this.commentRepository.save(comment);
     }
@@ -76,13 +79,13 @@ export class CommentService {
 
     async softDelete(userId: number, id: number) {
         const user = await this.findUserByUserId(userId);
-        const comment = await this.commentRepository.findOne({
-            where: { id },
-            relations: ['user', 'post'],
+        const comment = await this.findOne(id);
+        const post = await this.postRepository.findOne({
+            where: { id: comment.post.id },
         });
 
-        if (!comment) {
-            throw new NotFoundException('존재하지 않는 댓글입니다.');
+        if (!post) {
+            throw new NotFoundException('존재하지 않는 게시물입니다.');
         }
         if (comment.user.id != user.id) {
             throw new NotFoundException('작성자만 삭제 가능합니다.');
@@ -91,12 +94,18 @@ export class CommentService {
             deletedAt: new Date(),
         });
 
+        post.commentCount -= 1;
+        await this.postRepository.save(post);
+
         return ('댓글이 삭제되었습니다.');
     }
 
     async findPost(id: number) {
         const post = await this.postRepository.findOne({
-            where: { id },
+            where: {
+                id: id,
+                deletedAt: IsNull()
+            },
             relations: ['user'],
         });
 
@@ -111,7 +120,10 @@ export class CommentService {
 
     async findUserByUserId(userId: number) {
         const user = await this.userRepository.findOne({
-            where: { id: userId },
+            where: {
+                id: userId,
+                deletedAt: IsNull()
+            },
         });
         if (!user) {
             throw new NotFoundException('존재하지 않는 유저입니다.');
@@ -122,8 +134,11 @@ export class CommentService {
 
     async findOne(id: number) {
         const comment = await this.commentRepository.findOne({
-            where: { id },
-            relations: ['user'],
+            where: {
+                id: id,
+                deletedAt: IsNull()
+            },
+            relations: ['user', 'post'],
         });
 
         if (!comment) {
