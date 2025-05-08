@@ -5,6 +5,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import {Post} from "./entity/post.entity";
 import {User} from "../user/entity/user.entity";
+import { PostListDto } from './dto/post-list';
 
 @Injectable()
 export class PostService {
@@ -108,5 +109,32 @@ export class PostService {
         await this.postRepository.save(post);
 
         return post;
+    }
+
+    // 게시물 목록 조회
+    async findPostList(postListDto: PostListDto) {
+        const {
+            page = 1,
+            limit = 10,
+            orderBy = 'createdAt',
+            order = 'DESC',
+        } = postListDto;
+
+        const [data, total] = await this.postRepository.findAndCount({
+            relations: ['user'],
+            order: {
+                [orderBy]: order,
+            },
+            skip: (page - 1) * limit,
+            take: limit,
+        });
+
+        return {
+            data,
+            total,
+            page,
+            limit,
+            totalPage: Math.ceil(total / limit),
+        };
     }
 }

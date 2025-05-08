@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req, Query } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { PostListDto } from './dto/post-list';
 
 @Controller('posts')
 export class PostController {
@@ -14,6 +15,12 @@ export class PostController {
     create(@Body() createPostDto: CreatePostDto, @Req() req: any) {
         const userId = req.user.userId;
         return this.postService.create(createPostDto, userId);
+    }
+
+    // 게시물 목록 조회
+    @Get('/postList')
+    findPostList(@Query() postListDto: PostListDto) {
+        return this.postService.findPostList(postListDto);
     }
 
     // 모든 게시물 조회
