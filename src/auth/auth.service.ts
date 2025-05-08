@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Auth } from './entity/auth.entity';
 import { User } from 'src/user/entity/user.entity';
@@ -46,7 +46,10 @@ export class AuthService {
         });
 
         const existingAuth = await this.authRepository.findOne({
-            where: { user: { id: user.id } },
+            where: {
+                user: { id: user.id },
+                deletedAt: IsNull()
+            },
         });
 
         if (existingAuth) {
@@ -57,7 +60,24 @@ export class AuthService {
         }
 
         await this.authRepository.save({ user, accessToken, refreshToken });
-
         return { accessToken, refreshToken };
+    }
+
+    async logout(userId: number) {
+        const auth = await this.authRepository.findOne({
+            where: { user: { id: userId} },
+        });
+
+        if (!auth) {
+            throw new NotFoundException('로그인된 유저가 아닙니다.');
+        }
+
+        await this.authRepository.update(auth.id, {
+            accessToken: '',
+            refreshToken: '',
+            deletedAt: new Date(),
+        });
+
+        return ('로그아웃 되었습니다.');
     }
 }
