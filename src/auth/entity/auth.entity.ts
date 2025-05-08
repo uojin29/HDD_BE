@@ -7,7 +7,7 @@ export class Auth extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User, (user) => user.auths)
   @JoinColumn()
   user: User;
 
