@@ -35,6 +35,6 @@ export class CommentController {
     @UseGuards(AuthGuard('jwt'))
     softDelete(@Req() req: any, @Param('id') id: number) {
         const userId = req.user.userId;
-        return this.commentService.softDelete(id, userId);
+        return this.commentService.softDelete(userId, id);
     }
 }
