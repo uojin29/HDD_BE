@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import {Post} from "./entity/post.entity";
 import {User} from "../user/entity/user.entity";
 import { PostListDto } from './dto/post-list.dto';
+import { TitleSearchDto } from './dto/title-search.dto';
+import { ContentSearchDto } from './dto/content-search.dto';
+import { NicknameSearchDto } from './dto/nickname-search.dto';
+import { PostSearchDto } from './dto/post-search.dto';
 
 @Injectable()
 export class PostService {
@@ -18,12 +22,7 @@ export class PostService {
     ) {}
 
     async create(userId: number, createPostDto: CreatePostDto, file: Express.Multer.File) {
-        const user = await this.userRepository.findOne({
-            where: { id: userId },
-        });
-        if (!user) {
-            throw new NotFoundException('존재하지 않는 유저입니다.');
-        }
+        const user = await this.findUserByUserId(userId);
 
         // 파일이 존재하는 경우
         if (file) {
@@ -76,7 +75,10 @@ export class PostService {
 
     async findOne(id: number) {
         const post = await this.postRepository.findOne({
-            where: { id },
+            where: {
+                id: id,
+                deletedAt: IsNull()
+            },
             relations: ['user'],
         });
 
@@ -89,7 +91,10 @@ export class PostService {
 
     async findUserByUserId(userId: number) {
         const user = await this.userRepository.findOne({
-            where: { id: userId },
+            where: {
+                id: userId,
+                deletedAt: IsNull()
+            },
         });
 
         if (!user) {
@@ -119,6 +124,9 @@ export class PostService {
 
         const [data, total] = await this.postRepository.findAndCount({
             relations: ['user'],
+            where: {
+                deletedAt: IsNull(),
+            },
             order: {
                 [orderBy]: order,
             },
@@ -133,5 +141,70 @@ export class PostService {
             limit,
             totalPage: Math.ceil(total / limit),
         };
+    }
+
+    async searchByTitle(titleSearchDto: TitleSearchDto) {
+        const posts = await this.postRepository.find({
+            where: {
+                title: titleSearchDto.title,
+                deletedAt: IsNull(),
+            },
+            relations: ['user'],
+        });
+
+        if (posts.length === 0) {
+            throw new NotFoundException('존재하지 않는 게시물입니다.');
+        }
+
+        return posts;
+    }
+
+    async searchByContent(contentSearchDto: ContentSearchDto) {
+        const posts = await this.postRepository.find({
+            where: {
+                content: contentSearchDto.content,
+                deletedAt: IsNull(),
+            },
+            relations: ['user'],
+        });
+
+        if (posts.length === 0) {
+            throw new NotFoundException('존재하지 않는 게시물입니다.');
+        }
+
+        return posts;
+    }
+
+    async searchByNickname(nicknameSearchDto: NicknameSearchDto) {
+        const posts = await this.postRepository.find({
+            where: {
+                user: { nickname: nicknameSearchDto.nickname },
+                deletedAt: IsNull(),
+            },
+            relations: ['user'],
+        });
+
+        if (posts.length === 0) {
+            throw new NotFoundException('존재하지 않는 게시물입니다.');
+        }
+
+        return posts;
+    }
+
+    async searchAll(postSearchDto: PostSearchDto) {
+        const posts = await this.postRepository.find({
+            where: [
+                { title: postSearchDto.title, deletedAt: IsNull() },
+                { content: postSearchDto.content, deletedAt: IsNull() },
+                { user: { nickname: postSearchDto.nickname }, deletedAt: IsNull() },
+            ],
+            relations: ['user'],
+        });
+
+        if (posts.length === 0) {
+            throw new NotFoundException('존재하지 않는 게시물입니다.');
+        }
+
+        return posts;
     }
 }

@@ -5,6 +5,10 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { PostListDto } from './dto/post-list.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { TitleSearchDto } from './dto/title-search.dto';
+import { ContentSearchDto } from './dto/content-search.dto';
+import { NicknameSearchDto } from './dto/nickname-search.dto';
+import { PostSearchDto } from './dto/post-search.dto';
 
 @Controller('posts')
 export class PostController {
@@ -51,5 +55,29 @@ export class PostController {
     softDelete(@Req() req: any, @Param('id') id: number) {
         const userId = req.user.userId;
         return this.postService.softDelete(id, userId);
+    }
+
+    // 제목으로 게시물 검색
+    @Get('/search/title')
+    searchByTitle(@Body() titleSearchDto: TitleSearchDto) {
+        return this.postService.searchByTitle(titleSearchDto);
+    }
+
+    // 내용으로 게시물 검색
+    @Get('/search/content')
+    searchByContent(@Body() contentSearchDto: ContentSearchDto) {
+        return this.postService.searchByContent(contentSearchDto);
+    }
+
+    // 작성자 닉네임으로 게시물 검색
+    @Get('/search/nickname')
+    searchByNickname(@Body() nicknameSearchDto: NicknameSearchDto) {
+        return this.postService.searchByNickname(nicknameSearchDto);
+    }
+
+    // 제목/내용/닉네임으로 게시물 검색
+    @Get('/search/all')
+    searchAll(@Body() postSearchDto: PostSearchDto) {
+        return this.postService.searchAll(postSearchDto);
     }
 }
