@@ -5,7 +5,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import {Post} from "./entity/post.entity";
 import {User} from "../user/entity/user.entity";
-import { PostListDto } from './dto/post-list';
+import { PostListDto } from './dto/post-list.dto';
 
 @Injectable()
 export class PostService {

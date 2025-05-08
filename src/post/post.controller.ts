@@ -3,7 +3,7 @@ import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { PostListDto } from './dto/post-list';
+import { PostListDto } from './dto/post-list.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('posts')
