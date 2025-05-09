@@ -27,10 +27,7 @@ export class UserController {
     @Patch()
     @UseGuards(AuthGuard('jwt'))
     update(@Req() req: any, @Body() updateUserDto: UpdateUserDto) {
-        console.log(req)
         const userId = req.user.userId;
-        console.log(userId);
-        console.log(updateUserDto);
         return this.userService.update(userId, updateUserDto);
     }
 
