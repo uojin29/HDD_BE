@@ -31,7 +31,7 @@ export class UserService {
             // 새로운 유저거나 탈퇴한 유저인 경우
 
             // password 암호화
-            const bcrypt = require('bcrypt');
+            const bcrypt = require('bcryptjs');
             const saltRounds = 10;
 
             const salt = await bcrypt.genSalt(saltRounds);

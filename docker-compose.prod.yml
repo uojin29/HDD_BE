@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  main:
+    container_name: prod
+    build:
+      context: .
+      target: production
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - '3000:3000'
+    command: npm run start:prod
+    env_file:
+      - .env.production
+  db:
+    image: postgres:17
+    container_name: hdd-be-prod
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hdd-be-prod
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

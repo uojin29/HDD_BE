@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  main:
+    container_name: dev
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/usr/src/app
+    ports:
+        - '3000:3000'
+    command: npm run start:dev
+    env_file:
+      - .env.development
+  db:
+    image: postgres:17
+    container_name: hdd-be-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hdd-be-dev
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
