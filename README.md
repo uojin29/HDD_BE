@@ -1,98 +1,89 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+## 필수 조건
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+- NestJS + TypeScript + TypeORM + PostgreSQL을 사용합니다.
+    - **Docker**
+        - Dockerfile, docker-compose.yml 활용
+        - 환경변수는 .env 파일을 통해 관리
+    - **NestJS**
+    - **TypeORM**
+    - **TypeScript**
+    - **PostgreSQL**
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+- 작성하신 소스코드를 Docker Image를 빌드하신 후 컨테이너로 배포해주세요.
+- git을 사용한 버전 관리 (반드시 개발 히스토리를 남겨주세요)
 
-## Description
+## 권장 사항
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- API 테스트를 위한 문서(Postman 또는 Swagger)
+    - API 문서에서 인증이 필요한 경우 JWT 인증을 적용해주세요.
 
-## Project setup
+## 참고
 
-```bash
-$ npm install
-```
+- https://nestjs.com/
+- [https://typeorm.io/](https://typeorm.io/#/)
+- [https://www.postgresql.org/docs](https://www.postgresql.org/docs/15/index.html)
+- https://docs.docker.com/
 
-## Compile and run the project
+## 구현 사항
 
-```bash
-# development
-$ npm run start
+아래 요건을 모두 만족하도록 데이터베이스 스키마를 작성하고, 요청 사항을 처리하는 API 서버를 구현해 주세요.
 
-# watch mode
-$ npm run start:dev
+### **임의 변경사항**
+- API중 '조회'기능의 일부 API는 유저 인증을 하지 않음 (추후 프로젝트 방향성에 따라 수정될 수 있지만, 현재는 불필요하다고 판단하여 제외함)
+- Comment > 4 > 1의 '삭제된 게시글은 답글이 있는 경우 내용이 가려진 채로 노출됩니다.'에서 삭제된 게시글이 아니라 삭제된 댓글로 API 설계함. (삭제된 게시글이 댓글의 답글에 의해 내용 노출 여부가 결정되는 게 어색하다고 판단하여 수정함)
+---
 
-# production mode
-$ npm run start:prod
-```
+### 공통
 
-## Run tests
+1. 리소스의 삭제는 Soft Delete 방식을 사용합니다.
+2. Production과 Development의 두 환경을 갖도록 구현합니다. 환경 별 차이는 다음과 같습니다.
+    1. 각 환경이 사용하는 데이터베이스는 서로 달라야 합니다.
+    2. Development 환경의 경우, 각 API가 호출될 때마다 로그가 출력되어야 합니다.
+     `ex) GET /users 200 OK`
 
-```bash
-# unit tests
-$ npm run test
+### Auth
 
-# e2e tests
-$ npm run test:e2e
+1. 유저는 이메일 / 패스워드를 이용해 로그인할 수 있습니다.
+2. 로그인한 유저는 JWT 토큰을 발급 받고, 이후 모든 API에서 본인 인증 수단으로 사용합니다.
+4. Access Token의 제한 시간은 한 시간, Refresh Token의 제한 시간은 7일입니다.
+5. 로그아웃 시 Refresh Token이 만료됩니다.
 
-# test coverage
-$ npm run test:cov
-```
+### User
 
-## Deployment
+1. 유저는 이메일, 이름, 닉네임을 갖습니다.
+2. 다른 유저의 프로필을 조회할 수 있습니다. 단, 다른 유저의 이메일은 조회할 수 없습니다.
+3. 유저는 자신의 프로필을 조회하고, 이메일을 제외한 나머지를 수정할 수 있습니다.
+4. 유저는 자신이 작성한 글 목록 및 댓글 목록을 모아볼 수 있습니다.
+5. 회원 탈퇴한 경우 동일한 이메일로 가입할 수 있습니다.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Post
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+1. 게시글 목록을 조회할 수 있습니다.
+    1. 게시글 목록 조회는 페이지네이션을 사용합니다.
+    2. 최신 순, 인기 순 정렬이 가능합니다.
+2. 자유롭게 게시글을 등록할 수 있으며, 각 게시글에는 파일이나 이미지를 첨부할 수 있습니다.
+3. 게시글은 내용 외에 좋아요 개수, 댓글 개수, 조회수를 가집니다.
+4. 게시글의 작성자는 자유롭게 게시글을 수정 / 삭제할 수 있습니다.
+5. 유저는 게시글을 제목/내용 또는 작성자 닉네임 기준으로 검색할 수 있습니다.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+### Comment
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+1. 유저는 게시글을 클릭하여 내부 댓글 목록을 조회할 수 있습니다.
+2. 모든 사용자는 자유롭게 게시글에 댓글을 작성할 수 있습니다.
+3. 모든 사용자는 댓글에 답글을 달 수 있습니다.
+4. 댓글은 "댓글의 작성자"만 삭제할 수 있습니다.
+    1. 삭제된 게시글은 답글이 있는 경우 내용이 가려진 채로 노출됩니다.
+    2. 답글이 없는 경우 노출되지 않습니다.
+       - 삭제된 '게시글'이 아니라 '댓글'로 api를 설계함
 
-## Resources
+### Like
 
-Check out a few resources that may come in handy when working with NestJS:
+1. 유저는 게시글(Post)에 좋아요를 추가 / 취소 할 수 있습니다.
+2. “작성자”도 자신의 게시글에 좋아요를 추가할 수 있습니다.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### **추가 구현 사항 (가산점)**
 
-## Support
+**알림(Notification) 시스템**
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- 새로운 댓글, 게시글 수정, 좋아요 이벤트가 발생했을 때 유저에게 알림을 제공합니다.
+- 읽지 않은 알림을 표시하고, 유저가 확인하면 읽음 상태로 변경합니다.
