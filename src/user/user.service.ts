@@ -110,12 +110,23 @@ export class UserService {
         const commentList = await this.commentRepository.find({
             where: { user: { id: userId } },
             relations: ['user'],
+            withDeleted: true,
         });
 
         if (commentList.length == 0) {
             throw new NotFoundException('작성한 댓글이 없습니다.');
         }
 
+        // comment의 commentId가 null이면 content를 변경, 그 외에는 제거
+        for (let i = 0; i < commentList.length; i++) {
+            if (commentList[i].deletedAt != null && commentList[i].commentId != null) {
+                commentList[i].content = '이미 삭제된 댓글입니다.';
+            }
+            else if (commentList[i].deletedAt != null && commentList[i].commentId == null){
+                commentList.splice(i, 1);
+                i--;
+            }
+        }
         return commentList;
     }
 }

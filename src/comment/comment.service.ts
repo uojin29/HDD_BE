@@ -46,6 +46,18 @@ export class CommentService {
         comment.user = user;
         comment.post = post;
 
+        if (comment.commentId != null) {
+            const existingComment = await this.commentRepository.findOne({
+                where: {
+                    id: comment.commentId ,
+                    deletedAt: IsNull()
+                },
+            });
+            if (!existingComment) {
+                throw new NotFoundException('존재하지 않는 댓글입니다.');
+            }
+        }
+
         post.commentCount += 1;
         await this.postRepository.save(post);
 
@@ -70,7 +82,10 @@ export class CommentService {
         }
 
         const comments = await this.commentRepository.find({
-            where: { post: { id: postId } } ,
+            where: {
+                post: { id: postId },
+                deletedAt: IsNull()
+            } ,
             relations: ['post'],
         });
 
@@ -155,7 +170,6 @@ export class CommentService {
         const comment = await this.commentRepository.findOne({
             where: {
                 id: id,
-                deletedAt: IsNull()
             },
             relations: ['user', 'post'],
         });
@@ -163,7 +177,6 @@ export class CommentService {
         if (!comment) {
             throw new NotFoundException('존재하지 않는 댓글입니다.');
         }
-
         return comment;
     }
 }
